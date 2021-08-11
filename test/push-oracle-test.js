@@ -1,31 +1,56 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { BigNumber } = require("ethers");
 const { abi, bytecode } = require("usingtellor/artifacts/contracts/TellorPlayground.sol/TellorPlayground.json")
 
-describe("Tellor Push Oracle", function() {
-    it("Test Functionality", async function() {
+describe("Functionality Tests", function() {
+    // Set-up for playground, oracle, and user
+    let tellorPlayground;
+    let tellorPushOracle;
+    let tellorPushUser;
+
+    beforeEach(async function() {
         // Deploy an instance of Tellor Playground
         const TellorPlayground = await ethers.getContractFactory(abi, bytecode);
-        const tellorPlayground = await TellorPlayground.deploy();
+        tellorPlayground = await TellorPlayground.deploy();
         await tellorPlayground.deployed();
 
         // Deploy an instance of Tellor Push Oracle
         const TellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
-        const tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address);
+        tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address);
         await tellorPushOracle.deployed();
 
         // Deploy an instance of Tellor Push User
         const TellorPushUser = await ethers.getContractFactory("TellorPushUser");
-        const tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address);
+        tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address);
         await tellorPushUser.deployed();
+    });
 
+    // Test Example - data ID = 1, value = 3000
+    it ("Correctly matches up with data ID 1, value of 3000", async function() {
         // Push values to Tellor Playground
         const requestId = 1;
-        const mockValue = "7000000";
+        const mockValue = 3000;
         await tellorPlayground.submitValue(requestId, mockValue);
 
-        // Call initial function to check for receiveResult
-        await tellorPushOracle.pushNewData(1, tellorPushUser.address);
+        // Push data, and get the call back
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+        const oracleVal = await tellorPushUser.getUserValue(requestId);
+        expect(oracleVal).to.equal(mockValue)
     });
-  });
+
+    // Test Example - data ID 3, value = 300
+    it ("Correctly matches up with data ID 3, value of 300", async function() {
+        // Push values to Tellor Playground
+        const requestId = 3;
+        const mockValue = 300;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
+        // Push data, and get the call back
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+        const oracleVal = await tellorPushUser.getUserValue(requestId);
+        expect(oracleVal).to.equal(mockValue)
+    });
+
+});
   
