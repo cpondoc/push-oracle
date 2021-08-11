@@ -4,6 +4,7 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
+const { abi, bytecode } = require("usingtellor/artifacts/contracts/TellorPlayground.sol/TellorPlayground.json");
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -13,13 +14,17 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  // Deploy an instance of Tellor Playground
+  const TellorPlayground = await ethers.getContractFactory(abi, bytecode);
+  const tellorPlayground = await TellorPlayground.deploy();
+  await tellorPlayground.deployed();
 
-  await greeter.deployed();
+  // Deploy an instance of Tellor Push Oracle
+  const TellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
+  const tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address);
+  await tellorPushOracle.deployed();
 
-  console.log("Greeter deployed to:", greeter.address);
+  console.log("Tellor Push Oracle deployed to:", tellorPushOracle.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
