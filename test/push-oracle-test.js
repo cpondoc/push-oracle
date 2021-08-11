@@ -14,13 +14,18 @@ describe("Tellor Push Oracle", function() {
         const tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address);
         await tellorPushOracle.deployed();
 
+        // Deploy an instance of Tellor Push User
+        const TellorPushUser = await ethers.getContractFactory("TellorPushUser");
+        const tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address);
+        await tellorPushUser.deployed();
+
         // Push values to Tellor Playground
         const requestId = 1;
         const mockValue = "7000000";
         await tellorPlayground.submitValue(requestId, mockValue);
 
         // Call initial function to check for receiveResult
-        await tellorPushOracle.pushNewData(1, tellorPlayground.address);
+        await tellorPushOracle.pushNewData(1, tellorPushUser.address);
     });
   });
   
