@@ -7,3 +7,7 @@
     - Try making a call from another instance of TellorPushOracle
     - Try with non-zero/negative value
     - See if retrieve not possible, etc.
+
+## Other Considerations
+* Think about what happens if the address in `pushNewData` is not a valid address.
+    - Add a `try` / `catch`?
