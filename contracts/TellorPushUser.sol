@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0;
 
 import "./ITellorPushUser.sol";
+import "hardhat/console.sol";
 
 /** 
  @author Christopher Pondoc ༼ つ ◕_◕ ༽つ
@@ -51,6 +52,10 @@ contract TellorPushUser is ITellorPushUser {
         // Call returns a boolean value indicating success or failure.
         (bool sent,) = _to.call{value: msg.value}("");
         require(sent, "Failed to send Ether");
+    }
+
+    function grabValue() public payable {
+        console.logUint(msg.value);
     }
 
     /**

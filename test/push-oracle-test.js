@@ -140,3 +140,35 @@ describe("TellorPush User Require Tests", function() {
         await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
     })
 });
+
+describe("TellorPush User Transfer Tests", function() {
+    // Set-up for playground, oracle, and user
+    let tellorPlayground;
+    let tellorPushOracle;
+    let tellorPushUser;
+
+    beforeEach(async function() {
+        // Deploy an instance of Tellor Playground
+        const TellorPlayground = await ethers.getContractFactory(abi, bytecode);
+        tellorPlayground = await TellorPlayground.deploy();
+        await tellorPlayground.deployed();
+
+        // Deploy an instance of Tellor Push Oracle
+        const TellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
+        tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address);
+        await tellorPushOracle.deployed();
+
+        var num = await tellorPushOracle.getBalance();
+        console.log(num);
+
+        // Deploy an instance of Tellor Push User
+        const TellorPushUser = await ethers.getContractFactory("TellorPushUser");
+        tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address);
+        await tellorPushUser.deployed();
+    });
+
+    it ("Test Transfer Function", async function() {
+        await tellorPushUser.grabValue({value: 50});
+    })
+
+});
