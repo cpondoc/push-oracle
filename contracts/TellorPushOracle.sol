@@ -34,4 +34,22 @@ contract TellorPushOracle is UsingTellor {
         TellorPushUser tellorUser = TellorPushUser(_userContract);
         tellorUser.receiveResult(_tellorID, value);
     }
+
+    /**
+     * @dev Function to receive Ether. msg.data must be empty
+     */
+    receive() external payable {}
+
+     /**
+     * @dev Fallback function is called when msg.data is not empty
+     */
+    fallback() external payable {}
+
+    /**
+     * @dev Gets the balance of the smart contract
+     * @return uint with the amount of ether in the smart contract
+     */
+    function getBalance() public view returns (uint) {
+        return address(this).balance;
+    }
 }
