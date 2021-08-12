@@ -53,3 +53,45 @@ describe("Functionality Tests", function() {
     });
 
 });
+
+describe("TellorPush User Require Tests", function() {
+    // Set-up for playground, oracle, and user
+    let tellorPlayground;
+    let tellorPushOracle;
+    let tellorPushUser;
+
+    beforeEach(async function() {
+        // Deploy an instance of Tellor Playground
+        const TellorPlayground = await ethers.getContractFactory(abi, bytecode);
+        tellorPlayground = await TellorPlayground.deploy();
+        await tellorPlayground.deployed();
+
+        // Deploy an instance of Tellor Push Oracle
+        const TellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
+        tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address);
+        await tellorPushOracle.deployed();
+
+        // Deploy an instance of Tellor Push User
+        const TellorPushUser = await ethers.getContractFactory("TellorPushUser");
+        tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address);
+        await tellorPushUser.deployed();
+    });
+
+    // receiveResult does not take a non-approved oracle address
+    it ("Fail if receiveResult takes a non-approved oracle address", async function() {
+        await expect(tellorPushUser.receiveResult(1, 20)).to.be.revertedWith("The address is not an approved oracle!");
+    });
+
+    // receiveResult passes if a Tellor oracle calls the function
+    it ("Succeeds if receiveResult is called from within the Tellor Oracle", async function() {
+        // Push values to Tellor Playground
+        const requestId = 3;
+        const mockValue = 300;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
+        // Push data, and get the call back
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+        await expect(tellorPushUser.getUserValue(requestId));
+    })    
+
+});
