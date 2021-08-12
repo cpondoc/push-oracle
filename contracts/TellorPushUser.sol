@@ -38,6 +38,19 @@ contract TellorPushUser is ITellorPushUser {
         // Update last request ID and mapping of values
         lastRequestId = _requestID;
         internalOracle[lastRequestId] = _oracleValue;
+
+        // Example amount of Ether to send over/transfer
+        // sendEther(msg.sender);
+    }
+
+    /**
+     * @dev Sends Ether to contract at address parameter
+     * @param _to contract to send Ether to for fulfilling oracle request
+     */
+    function sendEther(address payable _to) public payable {
+        // Call returns a boolean value indicating success or failure.
+        (bool sent,) = _to.call{value: msg.value}("");
+        require(sent, "Failed to send Ether");
     }
 
     /**
