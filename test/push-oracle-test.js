@@ -77,9 +77,21 @@ describe("TellorPush User Require Tests", function() {
         await tellorPushUser.deployed();
     });
 
+    // receiveResult does not take a non-approved contract address
+    it ("Fail if receiveResult takes a non-approved contract address", async function() {
+        // Direct call to receiveResult with non oracle address
+        await expect(tellorPushUser.receiveResult(1, 20)).to.be.revertedWith("The address is not an approved oracle!");
+    });
+
     // receiveResult does not take a non-approved oracle address
     it ("Fail if receiveResult takes a non-approved oracle address", async function() {
-        await expect(tellorPushUser.receiveResult(1, 20)).to.be.revertedWith("The address is not an approved oracle!");
+        // Deploy a separate instance of Tellor Push Oracle
+        const OtherTellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
+        otherTellorPushOracle = await OtherTellorPushOracle.deploy(tellorPlayground.address);
+        await otherTellorPushOracle.deployed();
+
+        // Expect failure if not from the same address
+        await expect(otherTellorPushOracle.pushNewData(1, tellorPushUser.address)).to.be.revertedWith("The address is not an approved oracle!");
     });
 
     // receiveResult passes if a Tellor oracle calls the function
@@ -93,5 +105,35 @@ describe("TellorPush User Require Tests", function() {
         await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
         await expect(tellorPushUser.getUserValue(requestId));
     })    
+
+    // Check if message fails if last request ID was already same as looked at
+    it ("Fails if receiveResult gets the exact same request ID two times in a row", async function() {
+        // Push values to Tellor Playground
+        const requestId = 3;
+        const mockValue = 300;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
+        // Push data, and get the call back
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+        await expect(tellorPushOracle.pushNewData(requestId, tellorPushUser.address)).to.be.revertedWith("'This request ID has been called before!'");
+    })
+
+    it ("Succeeds if two separate request IDs are requested/pushed by Tellor Oracle", async function() {
+        // Push values to Tellor Playground
+        var requestId = 3;
+        var mockValue = 300;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
+        // Grab value
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+
+        // Push values again
+        requestId = 2;
+        mockValue = 400;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
+        // Grab value again
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+    })
 
 });
