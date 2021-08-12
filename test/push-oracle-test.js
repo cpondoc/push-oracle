@@ -85,13 +85,18 @@ describe("TellorPush User Require Tests", function() {
 
     // receiveResult does not take a non-approved oracle address
     it ("Fail if receiveResult takes a non-approved oracle address", async function() {
+        // Push values to Tellor Playground
+        const requestId = 1;
+        const mockValue = 300;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
         // Deploy a separate instance of Tellor Push Oracle
         const OtherTellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
         otherTellorPushOracle = await OtherTellorPushOracle.deploy(tellorPlayground.address);
         await otherTellorPushOracle.deployed();
 
-        // Expect failure if not from the same address
-        await expect(otherTellorPushOracle.pushNewData(1, tellorPushUser.address)).to.be.revertedWith("The address is not an approved oracle!");
+        // Expect failure if not an approved oracle address
+        await expect(otherTellorPushOracle.pushNewData(requestId, tellorPushUser.address)).to.be.revertedWith("The address is not an approved oracle!");
     });
 
     // receiveResult passes if a Tellor oracle calls the function
@@ -118,22 +123,20 @@ describe("TellorPush User Require Tests", function() {
         await expect(tellorPushOracle.pushNewData(requestId, tellorPushUser.address)).to.be.revertedWith("'This request ID has been called before!'");
     })
 
+    // Works if last request ID was different than last looked at
     it ("Succeeds if two separate request IDs are requested/pushed by Tellor Oracle", async function() {
         // Push values to Tellor Playground
         var requestId = 3;
         var mockValue = 300;
         await tellorPlayground.submitValue(requestId, mockValue);
 
-        // Grab value
+        // Grab value, and push values again
         await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
-
-        // Push values again
         requestId = 2;
         mockValue = 400;
         await tellorPlayground.submitValue(requestId, mockValue);
 
-        // Grab value again
+        // Grab value again -- works for two different request IDs
         await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
     })
-
 });

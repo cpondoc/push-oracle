@@ -34,7 +34,6 @@ contract TellorPushUser is ITellorPushUser {
         // Require statements per EIP-1154: Oracle Interface 
         require(msg.sender == approvedOracle, "The address is not an approved oracle!");
         require(lastRequestId != _requestID, "This request ID has been called before!");
-        require(_oracleValue > 0, "This value cannot be handled by oracle!");
 
         // Update last request ID and mapping of values
         lastRequestId = _requestID;
