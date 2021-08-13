@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 import "./ITellorPushUser.sol";
-import "hardhat/console.sol";
+import "./ERC20.sol";
 
 /** 
  @author Christopher Pondoc ༼ つ ◕_◕ ༽つ
@@ -16,14 +16,16 @@ contract TellorPushUser is ITellorPushUser {
     address approvedOracle; // address of oracle approved to provide data
     uint256 lastRequestId; // last request ID updated by the oracle
     mapping(uint256 => uint256) internalOracle; // mapping of values to grab from
+    ERC20 token; // Token to transfer as payment to the oracle
 
     // Functions
     /**
      * @dev Constructor solely defines the contract address approved to be an oracle
      * @param _oracleAddress address of approved oracle smart contract
      */
-    constructor(address _oracleAddress) {
+    constructor(address _oracleAddress, address _tokenAddress) {
         approvedOracle = _oracleAddress;
+        token = ERC20(_tokenAddress);
     }
 
     /**
@@ -40,22 +42,9 @@ contract TellorPushUser is ITellorPushUser {
         lastRequestId = _requestID;
         internalOracle[lastRequestId] = _oracleValue;
 
-        // Example amount of Ether to send over/transfer
-        // sendEther(msg.sender);
-    }
-
-    /**
-     * @dev Sends Ether to contract at address parameter
-     * @param _to contract to send Ether to for fulfilling oracle request
-     */
-    function sendEther(address payable _to) public payable {
-        // Call returns a boolean value indicating success or failure.
-        (bool sent,) = _to.call{value: msg.value}("");
-        require(sent, "Failed to send Ether");
-    }
-
-    function grabValue() public payable {
-        console.logUint(msg.value);
+        // Check if funds are sufficient, then transfer tokens over
+        require(token.balanceOf(address(this)) > 100, "The User of Tellor does not have enough tributes!");
+        token.transfer(msg.sender, 100);
     }
 
     /**

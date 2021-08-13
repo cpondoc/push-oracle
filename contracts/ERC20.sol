@@ -48,8 +48,8 @@ contract ERC20 {
      * @param user The address which will own the tokens
      *
      */
-    function faucet(address user) external {
-        _mint(user, 1000 ether);
+    function faucet(address user, uint256 _mintAmount) external {
+        _mint(user, _mintAmount);
     }
 
     /**

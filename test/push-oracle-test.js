@@ -9,6 +9,7 @@ describe("Functionality Tests", function() {
     let tellorPlayground;
     let tellorPushOracle;
     let tellorPushUser;
+    let erc20;
 
     beforeEach(async function() {
         // Deploy an instance of Tellor Playground
@@ -16,15 +17,22 @@ describe("Functionality Tests", function() {
         tellorPlayground = await TellorPlayground.deploy();
         await tellorPlayground.deployed();
 
+        // Deploy an instance of ERC20 Token
+        const ERC20 = await ethers.getContractFactory("ERC20");
+        erc20 = await ERC20.deploy("Tribute", "TRB");
+        await erc20.deployed();
+
         // Deploy an instance of Tellor Push Oracle
         const TellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
-        tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address);
+        tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address, erc20.address);
         await tellorPushOracle.deployed();
+        await erc20.faucet(tellorPushOracle.address, 1000);
 
         // Deploy an instance of Tellor Push User
         const TellorPushUser = await ethers.getContractFactory("TellorPushUser");
-        tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address);
+        tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address, erc20.address);
         await tellorPushUser.deployed();
+        await erc20.faucet(tellorPushUser.address, 1000);
     });
 
     // Test Example - data ID = 1, value = 3000
@@ -60,6 +68,7 @@ describe("TellorPush User Require Tests", function() {
     let tellorPlayground;
     let tellorPushOracle;
     let tellorPushUser;
+    let erc20;
 
     beforeEach(async function() {
         // Deploy an instance of Tellor Playground
@@ -67,15 +76,22 @@ describe("TellorPush User Require Tests", function() {
         tellorPlayground = await TellorPlayground.deploy();
         await tellorPlayground.deployed();
 
+        // Deploy an instance of ERC20 Token
+        const ERC20 = await ethers.getContractFactory("ERC20");
+        erc20 = await ERC20.deploy("Tribute", "TRB");
+        await erc20.deployed();
+
         // Deploy an instance of Tellor Push Oracle
         const TellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
-        tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address);
+        tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address, erc20.address);
         await tellorPushOracle.deployed();
+        await erc20.faucet(tellorPushOracle.address, 1000);
 
         // Deploy an instance of Tellor Push User
         const TellorPushUser = await ethers.getContractFactory("TellorPushUser");
-        tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address);
+        tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address, erc20.address);
         await tellorPushUser.deployed();
+        await erc20.faucet(tellorPushUser.address, 1000);
     });
 
     // receiveResult does not take a non-approved contract address
@@ -93,8 +109,9 @@ describe("TellorPush User Require Tests", function() {
 
         // Deploy a separate instance of Tellor Push Oracle
         const OtherTellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
-        otherTellorPushOracle = await OtherTellorPushOracle.deploy(tellorPlayground.address);
+        otherTellorPushOracle = await OtherTellorPushOracle.deploy(tellorPlayground.address, erc20.address);
         await otherTellorPushOracle.deployed();
+        await erc20.faucet(tellorPushOracle.address, 1000);
 
         // Expect failure if not an approved oracle address
         await expect(otherTellorPushOracle.pushNewData(requestId, tellorPushUser.address)).to.be.revertedWith("The address is not an approved oracle!");
@@ -147,6 +164,7 @@ describe("TellorPush User Transfer Tests", function() {
     let tellorPlayground;
     let tellorPushOracle;
     let tellorPushUser;
+    let erc20;
 
     beforeEach(async function() {
         // Deploy an instance of Tellor Playground
@@ -154,22 +172,26 @@ describe("TellorPush User Transfer Tests", function() {
         tellorPlayground = await TellorPlayground.deploy();
         await tellorPlayground.deployed();
 
+        // Deploy an instance of ERC20 Token
+        const ERC20 = await ethers.getContractFactory("ERC20");
+        erc20 = await ERC20.deploy("Tribute", "TRB");
+        await erc20.deployed();
+
         // Deploy an instance of Tellor Push Oracle
         const TellorPushOracle = await ethers.getContractFactory("TellorPushOracle");
-        tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address);
+        tellorPushOracle = await TellorPushOracle.deploy(tellorPlayground.address, erc20.address);
         await tellorPushOracle.deployed();
-
-        var num = await tellorPushOracle.getBalance();
-        console.log(num);
+        await erc20.faucet(tellorPushOracle.address, 1000);
 
         // Deploy an instance of Tellor Push User
         const TellorPushUser = await ethers.getContractFactory("TellorPushUser");
-        tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address);
+        tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address, erc20.address);
         await tellorPushUser.deployed();
+        await erc20.faucet(tellorPushUser.address, 1000);
     });
 
-    it ("Test Transfer Function", async function() {
+    /*it ("Test Transfer Function", async function() {
         await tellorPushUser.grabValue({value: 50});
-    })
+    })*/
 
 });
