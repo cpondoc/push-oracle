@@ -2,6 +2,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { BigNumber } = require("ethers");
 const { abi, bytecode } = require("usingtellor/artifacts/contracts/TellorPlayground.sol/TellorPlayground.json")
+const { MockProvider} = require("ethereum-waffle");
 
 describe("Functionality Tests", function() {
     // Set-up for playground, oracle, and user
