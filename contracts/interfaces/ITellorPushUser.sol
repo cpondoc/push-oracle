@@ -13,5 +13,5 @@ interface ITellorPushUser {
      * @param _requestID the ID of the data the oracle pushed
      * @param _oracleValue the value of the data the oracle pushed
      */
-    function receiveResult(uint256 _requestID, uint256 _oracleValue) external;
+    function receiveResult(uint256 _requestID, uint256 _oracleValue, uint256 _gasDifference) external;
 }

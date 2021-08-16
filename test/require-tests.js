@@ -36,7 +36,7 @@ describe("TellorPush User Require Tests", function() {
     // receiveResult does not take a non-approved contract address
     it ("Fail if receiveResult takes a non-approved contract address", async function() {
         // Direct call to receiveResult with non oracle address
-        await expect(tellorPushUser.receiveResult(1, 20)).to.be.revertedWith("The address is not an approved oracle!");
+        await expect(tellorPushUser.receiveResult(1, 20, 2000)).to.be.revertedWith("The address is not an approved oracle!");
     });
 
     // receiveResult does not take a non-approved oracle address

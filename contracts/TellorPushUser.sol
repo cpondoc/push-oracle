@@ -3,6 +3,7 @@ pragma solidity >=0.8.0;
 
 import "./interfaces/ITellorPushUser.sol";
 import "./ERC20.sol";
+import "hardhat/console.sol";
 
 /** 
  @author Christopher Pondoc ༼ つ ◕_◕ ༽つ
@@ -33,7 +34,9 @@ contract TellorPushUser is ITellorPushUser {
      * @param _requestID the ID of the data the oracle pushed
      * @param _oracleValue the value of the data the oracle pushed
      */
-    function receiveResult(uint256 _requestID, uint256 _oracleValue) override external {
+    function receiveResult(uint256 _requestID, uint256 _oracleValue, uint256 _gasDifference) override external {
+        uint256 gasRefund = _gasDifference * tx.gasprice; // Calculate gas to refund
+
         // Require statements per EIP-1154: Oracle Interface 
         require(msg.sender == approvedOracle, "The address is not an approved oracle!");
         require(lastRequestId != _requestID, "This request ID has been called before!");

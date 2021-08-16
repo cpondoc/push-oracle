@@ -13,6 +13,8 @@ import "./ERC20.sol";
 **/
 contract TellorPushOracle is UsingTellor {
 
+    using SafeMath for uint256;
+
     // Storage
     ERC20 token; // Token to transfer as payment to the oracle
 
@@ -33,12 +35,16 @@ contract TellorPushOracle is UsingTellor {
      TellorUser contract
      */
     function pushNewData(uint256 _tellorID, address _userContract) external payable {
+        uint256 initialGas = gasleft(); // Get initial gas
+
         // Grab current value from Tellor oracle and ensure data was retrieved
         (bool ifRetrieve, uint256 value, ) = getCurrentValue(_tellorID);
         require(ifRetrieve == true, "Data was not retrieved!");
 
+        uint256 gasDifference = initialGas.sub(gasleft()); // Calculate difference in gas
+
         // Pushes data to Tellor user contract using receiveResult function
         TellorPushUser tellorUser = TellorPushUser(_userContract);
-        tellorUser.receiveResult(_tellorID, value);
+        tellorUser.receiveResult(_tellorID, value, gasDifference);
     }
 }
