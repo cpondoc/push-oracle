@@ -1,13 +1,15 @@
 const { expect } = require("chai");
+const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 const { abi, bytecode } = require("usingtellor/artifacts/contracts/TellorPlayground.sol/TellorPlayground.json")
 
 describe("Functionality Tests", function() {
-    // Set-up for playground, oracle, and user
+    // Set-up for playground, oracle, user, and starting gas
     let tellorPlayground;
     let tellorPushOracle;
     let tellorPushUser;
     let erc20;
+    let startingGas = 2.0;
 
     beforeEach(async function() {
         // Deploy an instance of Tellor Playground
@@ -31,6 +33,17 @@ describe("Functionality Tests", function() {
         tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address, erc20.address);
         await tellorPushUser.deployed();
         await erc20.faucet(tellorPushUser.address, 1000);
+
+        // Send ether to oracle and user contracts
+        [owner] = await ethers.getSigners();
+        await owner.sendTransaction({
+            to: tellorPushOracle.address,
+            value: ethers.utils.parseEther(startingGas.toString()),
+        });
+        await owner.sendTransaction({
+            to: tellorPushUser.address,
+            value: ethers.utils.parseEther(startingGas.toString()),
+        });
     });
 
     // Test Example - data ID = 1, value = 3000
@@ -44,6 +57,12 @@ describe("Functionality Tests", function() {
         await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
         const oracleVal = await tellorPushUser.getUserValue(requestId);
         expect(oracleVal).to.equal(mockValue)
+
+        // Check that gas checks out
+        const userGas = BigNumber.from(await tellorPushUser.getEtherBalance());
+        const oracleGas = BigNumber.from(await tellorPushOracle.getEtherBalance());
+        expect(parseFloat(ethers.utils.formatUnits(userGas))).to.be.lessThan(startingGas);
+        expect(parseFloat(ethers.utils.formatUnits(oracleGas))).to.be.greaterThan(startingGas);
     });
 
     // Test Example - data ID 3, value = 300
@@ -57,6 +76,12 @@ describe("Functionality Tests", function() {
         await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
         const oracleVal = await tellorPushUser.getUserValue(requestId);
         expect(oracleVal).to.equal(mockValue)
+
+        // Check that gas checks out
+        const userGas = BigNumber.from(await tellorPushUser.getEtherBalance());
+        const oracleGas = BigNumber.from(await tellorPushOracle.getEtherBalance());
+        expect(parseFloat(ethers.utils.formatUnits(userGas))).to.be.lessThan(startingGas);
+        expect(parseFloat(ethers.utils.formatUnits(oracleGas))).to.be.greaterThan(startingGas);
     });
 
 });

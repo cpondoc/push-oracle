@@ -3,11 +3,12 @@ const { ethers } = require("hardhat");
 const { abi, bytecode } = require("usingtellor/artifacts/contracts/TellorPlayground.sol/TellorPlayground.json")
 
 describe("TellorPush User Require Tests", function() {
-    // Set-up for playground, oracle, and user
+    // Set-up for playground, oracle, user, and gas
     let tellorPlayground;
     let tellorPushOracle;
     let tellorPushUser;
     let erc20;
+    let startingGas = 2.0;
 
     beforeEach(async function() {
         // Deploy an instance of Tellor Playground
@@ -31,6 +32,17 @@ describe("TellorPush User Require Tests", function() {
         tellorPushUser = await TellorPushUser.deploy(tellorPushOracle.address, erc20.address);
         await tellorPushUser.deployed();
         await erc20.faucet(tellorPushUser.address, 1000);
+
+        // Send ether to oracle and user contracts
+        [owner] = await ethers.getSigners();
+        await owner.sendTransaction({
+            to: tellorPushOracle.address,
+            value: ethers.utils.parseEther(startingGas.toString()),
+        });
+        await owner.sendTransaction({
+            to: tellorPushUser.address,
+            value: ethers.utils.parseEther(startingGas.toString()),
+        });
     });
 
     // receiveResult does not take a non-approved contract address
@@ -102,6 +114,12 @@ describe("TellorPush User Require Tests", function() {
         const OtherTellorPushUser = await ethers.getContractFactory("TellorPushUser");
         otherTellorPushUser = await OtherTellorPushUser.deploy(tellorPushOracle.address, erc20.address);
         await otherTellorPushUser.deployed();
+
+        // Deposit tributes and ether to the smart contract
+        await owner.sendTransaction({
+            to: otherTellorPushUser.address,
+            value: ethers.utils.parseEther("2.0"), // Sends exactly 1.0 ether
+        });
         await erc20.faucet(otherTellorPushUser.address, 50);
 
         // Push values to Tellor Playground

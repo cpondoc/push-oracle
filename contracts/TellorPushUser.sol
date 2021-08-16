@@ -24,7 +24,7 @@ contract TellorPushUser is ITellorPushUser {
      * @dev Constructor solely defines the contract address approved to be an oracle
      * @param _oracleAddress address of approved oracle smart contract
      */
-    constructor(address _oracleAddress, address _tokenAddress) {
+    constructor(address payable _oracleAddress, address _tokenAddress) {
         approvedOracle = _oracleAddress;
         token = ERC20(_tokenAddress);
     }
@@ -35,7 +35,9 @@ contract TellorPushUser is ITellorPushUser {
      * @param _oracleValue the value of the data the oracle pushed
      */
     function receiveResult(uint256 _requestID, uint256 _oracleValue, uint256 _gasDifference) override external {
-        uint256 gasRefund = _gasDifference * tx.gasprice; // Calculate gas to refund
+        // Calculate gas to refund and make sure that contract has enough ether
+        uint256 gasRefund = _gasDifference * tx.gasprice;
+        require(address(this).balance > gasRefund, "The contract does not have enough ether to pay back the oracle!");
 
         // Require statements per EIP-1154: Oracle Interface 
         require(msg.sender == approvedOracle, "The address is not an approved oracle!");
@@ -48,6 +50,10 @@ contract TellorPushUser is ITellorPushUser {
         // Check if funds are sufficient, then transfer tokens over
         require(token.balanceOf(address(this)) > 100, "The User of Tellor does not have enough tributes!");
         token.transfer(msg.sender, 100);
+
+        // Check if funds are sufficient, then pay for gas
+        (bool sent,) = approvedOracle.call{value: gasRefund}("");
+        require(sent, "The user contract failed to send Ether!");
     }
 
     /**
@@ -60,10 +66,27 @@ contract TellorPushUser is ITellorPushUser {
     }
 
     /**
-     * @dev Returns balance of the Tellor User contract
+     * @dev Returns Tribute balance of the Tellor User contract
      * @return uint256 the number of ERC 20 tokens the specific user has
      */
-    function getUserBalance() external view returns(uint256) {
+    function getTributeBalance() external view returns(uint256) {
         return token.balanceOf(address(this));
     }
+
+    /**
+     * @dev Returns amount of ether the smart contract holds
+     */
+    function getEtherBalance() public view returns (uint) {
+        return address(this).balance;
+    }
+
+    /**
+     * @dev Function to receive Ether. msg.data must be empty
+     */
+    receive() external payable {}
+
+    /**
+     * @dev Fallback function is called when msg.data is not empty
+     */
+    fallback() external payable {}
 }

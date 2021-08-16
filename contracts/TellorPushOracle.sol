@@ -34,7 +34,7 @@ contract TellorPushOracle is UsingTellor {
      * @param _userContract the smart contract to push data to -- must be a 
      TellorUser contract
      */
-    function pushNewData(uint256 _tellorID, address _userContract) external payable {
+    function pushNewData(uint256 _tellorID, address payable _userContract) external payable {
         uint256 initialGas = gasleft(); // Get initial gas
 
         // Grab current value from Tellor oracle and ensure data was retrieved
@@ -47,4 +47,21 @@ contract TellorPushOracle is UsingTellor {
         TellorPushUser tellorUser = TellorPushUser(_userContract);
         tellorUser.receiveResult(_tellorID, value, gasDifference);
     }
+
+    /**
+     * @dev Returns amount of ether the smart contract holds
+     */
+    function getEtherBalance() public view returns (uint) {
+        return address(this).balance;
+    }
+
+    /**
+     * @dev Function to receive Ether. msg.data must be empty
+     */
+    receive() external payable {}
+
+    /**
+     * @dev Fallback function is called when msg.data is not empty
+     */
+    fallback() external payable {}
 }
