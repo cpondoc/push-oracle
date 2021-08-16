@@ -130,4 +130,26 @@ describe("TellorPush User Require Tests", function() {
         // Grab value, and push values again
         await expect(tellorPushOracle.pushNewData(requestId, otherTellorPushUser.address)).to.be.revertedWith("The User of Tellor does not have enough tributes!");
     })
+
+    it ("Fail if not enough ether is deposited into the user contract", async function() {
+        // Deploy another instance of Tellor Push User
+        const OtherTellorPushUser = await ethers.getContractFactory("TellorPushUser");
+        otherTellorPushUser = await OtherTellorPushUser.deploy(tellorPushOracle.address, erc20.address);
+        await otherTellorPushUser.deployed();
+        await erc20.faucet(tellorPushUser.address, 1000);
+
+        // Send ether to oracle and user contracts
+        await owner.sendTransaction({
+            to: otherTellorPushUser.address,
+            value: ethers.utils.parseEther("0.000000000000000001"),
+        });
+
+        // Push values to Tellor Playground
+        const requestId = 1;
+        const mockValue = 3000;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
+        // Push data, and get the call back
+        await expect(tellorPushOracle.pushNewData(requestId, otherTellorPushUser.address)).to.be.revertedWith("The contract does not have enough ether to pay back the oracle!");
+    })
 });
