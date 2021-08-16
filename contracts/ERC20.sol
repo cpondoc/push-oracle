@@ -1,8 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
+/** 
+ @author Christopher Pondoc ༼ つ ◕_◕ ༽つ
+ @title SafeMath
+ @dev This contract implements safe-to-use math functions for deailng with uint256s
+**/
 library SafeMath {
-
+    // Functions
+    /**
+     * @dev Internal function for safe addition
+     */
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 c = a + b;
         require(c >= a, "SafeMath: addition overflow");
@@ -10,10 +18,16 @@ library SafeMath {
         return c;
     }
 
+    /**
+     * @dev Internal function for safe subtraction, with error
+     */
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
         return sub(a, b, "SafeMath: subtraction overflow");
     }
 
+    /**
+     * @dev Internal function for safe subtraction, with error message
+     */
     function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
         require(b <= a, errorMessage);
         uint256 c = a - b;
@@ -22,21 +36,32 @@ library SafeMath {
     }
 }
 
+/** 
+ @author Christopher Pondoc ༼ つ ◕_◕ ༽つ
+ @title ERC20
+ @dev This contract implements the corresponding smart contract for an ERC20 token
+**/
 contract ERC20 {
 
-    using SafeMath for uint256;
+    using SafeMath for uint256; // For SafeMath
 
+    // Events
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    mapping (address => uint256) private _balances;
-    mapping (address => mapping (address => uint256)) private _allowances;
+    // Storage
+    mapping (address => uint256) private _balances; // Mapping of the balance of each smart contract address
+    mapping (address => mapping (address => uint256)) private _allowances; // Mapping of allowances
 
-    uint256 private _totalSupply;
-    string private _name;
-    string private _symbol;
-    uint8 private _decimals;
+    uint256 private _totalSupply; // Total number of tokens
+    string private _name; // Name of token
+    string private _symbol; // Symbol of token
+    uint8 private _decimals; // Number of decimals in representation
 
+    // Functions
+    /**
+     * @dev Constructor defines name, symbol, and decimal specification of token
+     */
     constructor (string memory tokenName, string memory tokenSymbol) {
         _name = tokenName;
         _symbol = tokenSymbol;
@@ -97,13 +122,6 @@ contract ERC20 {
     }
 
     /**
-     * @dev Returns the balance of a given user.
-     */
-    function balanceOfAt(address account, uint256 _block) public view returns (uint256) {
-        return _balances[account] + _block * 0;
-    }
-
-    /**
      * @dev Transfer tokens from user to another
      * @param recipient The destination address
      * @param amount The amount of tokens, including decimals, to transfer
@@ -137,20 +155,6 @@ contract ERC20 {
      */
     function approve(address spender, uint256 amount) public virtual returns (bool) {
         _approve(msg.sender, spender, amount);
-        return true;
-    }
-
-     /**
-     * @dev Transfer tokens from user to another
-     * @param sender The address which owns the tokens
-     * @param recipient The destination address
-     * @param amount The amount of tokens, including decimals, to transfer
-     * @return bool If the transfer succeeded
-     *
-     */
-    function transferFrom(address sender, address recipient, uint256 amount) public virtual returns (bool) {
-        _transfer(sender, recipient, amount);
-        _approve(sender, msg.sender, _allowances[sender][msg.sender].sub(amount, "ERC20: transfer amount exceeds allowance"));
         return true;
     }
 
