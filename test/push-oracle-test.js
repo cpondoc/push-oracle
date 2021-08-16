@@ -157,6 +157,22 @@ describe("TellorPush User Require Tests", function() {
         // Grab value again -- works for two different request IDs
         await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
     })
+
+    it ("Fail if user does not have enough tributes to transfer", async function() {
+        // Deploy an instance of Tellor Push User
+        const OtherTellorPushUser = await ethers.getContractFactory("TellorPushUser");
+        otherTellorPushUser = await OtherTellorPushUser.deploy(tellorPushOracle.address, erc20.address);
+        await otherTellorPushUser.deployed();
+        await erc20.faucet(otherTellorPushUser.address, 50);
+
+        // Push values to Tellor Playground
+        var requestId = 3;
+        var mockValue = 300;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
+        // Grab value, and push values again
+        await expect(tellorPushOracle.pushNewData(requestId, otherTellorPushUser.address)).to.be.revertedWith("The User of Tellor does not have enough tributes!");
+    })
 });
 
 describe("TellorPush User Transfer Tests", function() {
@@ -190,8 +206,45 @@ describe("TellorPush User Transfer Tests", function() {
         await erc20.faucet(tellorPushUser.address, 1000);
     });
 
-    /*it ("Test Transfer Function", async function() {
-        await tellorPushUser.grabValue({value: 50});
-    })*/
+    // Simple e2e test -- ensuring funds are distributed correctly
+    it ("Make sure both contracts have correct amount of funds after one push", async function() {
+        // Push values to Tellor Playground
+        var requestId = 3;
+        var mockValue = 300;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
+        // Push data, and check funds
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+        expect(await erc20.balanceOf(tellorPushUser.address)).to.equal(900);
+        expect(await erc20.balanceOf(tellorPushOracle.address)).to.equal(1100);
+    })
+
+    // More complex test -- making sure entire workflow is tested through
+    it ("Make sure both contracts have correct ammount of funds after multiple pushes", async function() {
+        // Push values to Tellor Playground
+        var requestId = 3;
+        var mockValue = 300;
+        await tellorPlayground.submitValue(requestId, mockValue);
+
+        // Push data, and check funds
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+        expect(await erc20.balanceOf(tellorPushUser.address)).to.equal(900);
+        expect(await erc20.balanceOf(tellorPushOracle.address)).to.equal(1100);
+
+        // Push new values to Tellor Playground
+        requestId = 5;
+        mockValue = 600;
+        await tellorPlayground.submitValue(requestId, mockValue);
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+
+        requestId = 10;
+        mockValue = 300;
+        await tellorPlayground.submitValue(requestId, mockValue);
+        await tellorPushOracle.pushNewData(requestId, tellorPushUser.address);
+
+        // Check funds
+        expect(await erc20.balanceOf(tellorPushUser.address)).to.equal(700);
+        expect(await erc20.balanceOf(tellorPushOracle.address)).to.equal(1300);  
+    })
 
 });

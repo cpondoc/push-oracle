@@ -55,4 +55,12 @@ contract TellorPushUser is ITellorPushUser {
     function getUserValue(uint256 _requestID) external view returns (uint256) {
         return internalOracle[_requestID];
     }
+
+    /**
+     * @dev Returns balance of the Tellor User contract
+     * @return uint256 the number of ERC 20 tokens the specific user has
+     */
+    function getUserBalance() external view returns(uint256) {
+        return token.balanceOf(address(this));
+    }
 }
